@@ -1,11 +1,137 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <title>Coming Soon</title>
-  </head>
-  <body>
-    <h1>My Site is Live 🎉</h1>
-    <p>I’ll add more pages soon.</p>
-    <a href="connect_numbers.html">Play Connect Numbers</a>
-  </body>
+<head>
+    <title>Weekend Projects</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: repeating-linear-gradient(
+                45deg,
+                #eef6f9,
+                #eef6f9 20px,
+                #dceeff 20px,
+                #dceeff 40px
+            );
+            padding: 20px;
+            margin: 0;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #333;
+        }
+
+        .row {
+            display: flex;
+            align-items: stretch;
+            justify-content: space-between;
+            gap: 20px;
+            max-width: 1000px;
+            margin: 0 auto 20px auto;
+        }
+
+        .column {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            flex: 1;
+        }
+
+        .column.wide {
+            flex: 2;
+        }
+
+        .button-link {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 20px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            background: white;
+            color: #333;
+            text-decoration: none;
+            border-radius: 12px;
+            flex: 1;
+            min-height: 120px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .button-link:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 6px 14px rgba(0,0,0,0.15);
+        }
+
+        /* Slightly different highlight per button */
+        .button-link:nth-child(1) { border: 3px solid #2196f3; }
+        .button-link:nth-child(2) { border: 3px solid #4caf50; }
+        .column .button-link:nth-child(1) { border: 3px solid #9c27b0; }
+        .column.wide .button-link:nth-child(1) { border: 3px solid #ff9800; }
+        .column.wide .button-link:nth-child(2) { border: 3px solid #009688; }
+        .column .button-link:nth-child(2) { border: 3px solid #f44336; }
+
+        .placeholder {
+            flex: 1;
+            border: 2px dashed #bbb;
+            border-radius: 10px;
+            background: rgba(255,255,255,0.4);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1rem;
+            color: #777;
+            padding: 15px;
+            min-height: 120px;
+        }
+
+        /* Responsive: keep grid but shrink */
+        @media (max-width: 700px) {
+            .row {
+                flex-wrap: wrap;
+            }
+            .button-link, .placeholder {
+                font-size: 1rem;
+                min-height: 90px;
+            }
+            .column.wide {
+                flex: 1;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>🚀 Weekend Projects</h1>
+
+    <!-- Top Row -->
+    <div class="row">
+        <a class="button-link" href="connect_numbers.html">🔗 Connect Numbers</a>
+        <a class="placeholder">Future Project</a>
+    </div>
+
+    <!-- Middle Row -->
+    <div class="row">
+        <div class="column">
+            <a class="placeholder">🎮 Another Game Soon</a>
+        </div>
+        <div class="column wide">
+            <a class="placeholder">🛠️ Tool in Progress</a>
+            <a class="placeholder">💡 Idea Slot</a>
+        </div>
+    </div>
+
+    <!-- Bottom Row -->
+    <div class="row">
+        <div class="column wide">
+            <a class="placeholder">🌐 API / Data Project</a>
+            <a class="placeholder">⚡ More Coming</a>
+        </div>
+        <div class="column">
+            <a class="placeholder">📱 Mobile Mini-App</a>
+        </div>
+    </div>
+</body>
 </html>

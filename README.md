@@ -1,5 +1,7 @@
 # Weekend Projects 🎮
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
 Welcome to my **weekend projects** repo!  
 This is where I experiment with small fun web games and ideas.
 

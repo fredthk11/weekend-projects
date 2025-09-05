@@ -191,9 +191,16 @@ let colorIndex = 0;
 
 // formatting and colors
 function formatNumber(n){
-  if (n >= 1_000_000) return Math.round(n/1_000_000) + 'M';
-  if (n >= 1_000) return Math.round(n/1_000) + 'k';
-  return String(n);
+  if (n >= 1_000_000_000_000_000_000_000_000) return Math.round(n/1_000_000_000_000_000_000_000_000) + 'Y'; // yotta
+  if (n >= 1_000_000_000_000_000_000_000)     return Math.round(n/1_000_000_000_000_000_000_000) + 'Z'; // zetta
+  if (n >= 1_000_000_000_000_000_000)         return Math.round(n/1_000_000_000_000_000_000) + 'E'; // exa
+  if (n >= 1_000_000_000_000_000)             return Math.round(n/1_000_000_000_000_000) + 'P'; // peta
+  if (n >= 1_000_000_000_000)                 return Math.round(n/1_000_000_000_000) + 'T'; // trillion
+  if (n >= 1_000_000_000)                     return Math.round(n/1_000_000_000) + 'B'; // billion
+  if (n >= 1_000_000)                         return Math.round(n/1_000_000) + 'M'; // million
+  if (n >= 1_000)                             return Math.round(n/1_000) + 'k'; // thousand
+  if (n === 0)                                return "0"; // zero case
+  return String(n); // default
 }
 function getColor(num) {
   if (!colorMap[num]) {

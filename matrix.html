@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Matrix Raincode Wallpaper</title>
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+      background: #000;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+    canvas {
+      display: block;
+      background: #000;
+    }
+    /* Subtle glow effect for canvas */
+    canvas.glow {
+      filter: drop-shadow(0 0 10px rgba(0, 255, 0, 0.3));
+    }
+  </style>
+</head>
+<body>
+  <canvas id="matrix"></canvas>
+  <script>
+    const canvas = document.getElementById('matrix');
+    const ctx = canvas.getContext('2d');
+
+    // Set canvas size to window size
+    canvas.height = window.innerHeight;
+    canvas.width = window.innerWidth;
+    canvas.classList.add('glow');
+
+    // Characters for the rain (Latin + some Unicode for Matrix vibe)
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%^&*()_+-=[]{}|;:,.<>?';
+    const fontSize = 14;
+    const columns = Math.floor(canvas.width / fontSize);
+    const drops = Array(columns).fill(1);
+
+    // Randomize character selection
+    function randomChar() {
+      return chars[Math.floor(Math.random() * chars.length)];
+    }
+
+    // Animation loop
+    function draw() {
+      // Fade effect: semi-transparent black overlay
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // Draw falling characters
+      ctx.fillStyle = '#0F0'; // Matrix green
+      ctx.font = `${fontSize}px monospace`;
+
+      for (let i = 0; i < drops.length; i++) {
+        const text = randomChar();
+        const x = i * fontSize;
+        const y = drops[i] * fontSize;
+
+        ctx.fillText(text, x, y);
+
+        // Reset drop to top when it reaches bottom
+        if (y > canvas.height && Math.random() > 0.975) {
+          drops[i] = 0;
+        }
+        drops[i]++;
+      }
+    }
+
+    // Run animation
+    setInterval(draw, 50);
+
+    // Resize canvas on window resize
+    window.addEventListener('resize', () => {
+      canvas.height = window.innerHeight;
+      canvas.width = window.innerWidth;
+      drops.length = Math.floor(canvas.width / fontSize);
+      drops.fill(1);
+    });
+
+    // 👇 NEW: click anywhere to go back to index.html
+    document.addEventListener('click', () => {
+      window.location.href = 'index.html';
+    });
+  </script>
+</body>
+</html>

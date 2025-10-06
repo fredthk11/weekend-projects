@@ -14,7 +14,8 @@ Check out the hosted version on GitHub Pages:
 ---
 
 ## 🎲 Projects
-- [Connect Numbers Game](https://fredthk11.github.io/weekend-projects/connect_numbers.html)
+- [Connect Numbers Game](https://fredthk11.github.io/weekend-projects/connect_numbers.html) – a simple interactive number-connecting puzzle.
+- [Matrix Raincode Wallpaper](https://fredthk11.github.io/weekend-projects/matrix.html) – animated Matrix-style falling code wallpaper.
 
 ---
 

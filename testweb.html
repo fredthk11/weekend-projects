@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lecturer Scan Queue</title>
+    <script src="https://unpkg.com/html5-qrcode"></script>
+    <style>
+        body { font-family: sans-serif; margin: 20px; background: #f4f4f9; }
+        #reader { width: 100%; border-radius: 10px; overflow: hidden; border: 2px solid #333; }
+        .container { max-width: 500px; margin: auto; }
+        .queue-section { margin-top: 20px; background: white; padding: 15px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .student-item { display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #eee; align-items: center; }
+        .remove-btn { color: red; font-weight: bold; cursor: pointer; border: 1px solid red; padding: 2px 8px; border-radius: 5px; }
+        button#submit-all { width: 100%; padding: 15px; background: #28a745; color: white; border: none; border-radius: 5px; font-size: 16px; margin-top: 15px; }
+        .violation-select { width: 100%; padding: 10px; margin-bottom: 15px; border-radius: 5px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Issue Warning Queue</h2>
+    
+    <select id="violation-type" class="violation-select">
+        <option value="dress-code">Dress Code Violation</option>
+        <option value="late">Late Arrival</option>
+        <option value="smoking">Smoking</option>
+    </select>
+
+    <div id="reader"></div>
+
+    <div class="queue-section">
+        <h3>Queue (<span id="count">0</span>)</h3>
+        <div id="student-queue">
+            </div>
+        <button id="submit-all" onclick="submitWarnings()">Issue Warnings to All</button>
+    </div>
+</div>
+
+<script>
+    const scannedIds = new Set();
+    const queueElement = document.getElementById('student-queue');
+    const countElement = document.getElementById('count');
+
+    function onScanSuccess(decodedText, decodedResult) {
+        // Prevent duplicate scans in the same session
+        if (!scannedIds.has(decodedText)) {
+            scannedIds.add(decodedText);
+            addStudentToQueue(decodedText);
+            
+            // Haptic feedback (vibrate) if supported
+            if (navigator.vibrate) navigator.vibrate(100);
+        }
+    }
+
+    function addStudentToQueue(id) {
+        const div = document.createElement('div');
+        div.className = 'student-item';
+        div.id = `student-${id}`;
+        div.innerHTML = `
+            <span><strong>ID:</strong> ${id}</span>
+            <span class="remove-btn" onclick="removeStudent('${id}')">Remove</span>
+        `;
+        queueElement.appendChild(div);
+        updateCount();
+    }
+
+    function removeStudent(id) {
+        scannedIds.delete(id);
+        document.getElementById(`student-${id}`).remove();
+        updateCount();
+    }
+
+    function updateCount() {
+        countElement.innerText = scannedIds.size;
+    }
+
+    function submitWarnings() {
+        if (scannedIds.size === 0) {
+            alert("Queue is empty!");
+            return;
+        }
+        const violation = document.getElementById('violation-type').value;
+        const ids = Array.from(scannedIds);
+        
+        alert(`Successfully issued "${violation}" warnings to: \n${ids.join(', ')}`);
+        
+        // Reset after submit
+        scannedIds.clear();
+        queueElement.innerHTML = '';
+        updateCount();
+    }
+
+    // Initialize Scanner
+    let html5QrcodeScanner = new Html5QrcodeScanner(
+        "reader", { fps: 10, qrbox: {width: 250, height: 250} }
+    );
+    html5QrcodeScanner.render(onScanSuccess);
+</script>
+
+</body>
+</html>

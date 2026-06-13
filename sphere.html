@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body { margin: 0; background: #0f0f0f; display: flex; justify-content: center; align-items: center; height: 100vh; }
+    </style>
+</head>
+<body>
+    <canvas id="sphereCanvas" width="500" height="500"></canvas>
+    <script>
+        const canvas = document.getElementById('sphereCanvas');
+        const ctx = canvas.getContext('2d');
+        const r = 150;
+        let angle = 0;
+
+        function draw() {
+            ctx.fillStyle = 'rgba(15, 15, 15, 0.2)';
+            ctx.fillRect(0, 0, 500, 500);
+            
+            // Sphere equation: z^2 = r^2 - x^2 - y^2
+            // We slice the sphere into layers along the Y-axis
+            for (let y = -r; y <= r; y += 20) {
+                // Calculate the radius of the circle at this specific slice height (y)
+                // r_slice = sqrt(r^2 - y^2)
+                let r_slice = Math.sqrt(Math.max(0, r * r - y * y));
+                
+                // Draw the layer
+                ctx.strokeStyle = `hsla(${180 + y}, 80%, 60%, 0.5)`;
+                ctx.beginPath();
+                // Dots moving along the x-axis for this specific layer
+                let x = r_slice * Math.cos(angle);
+                ctx.arc(250 + x, 250 + y, 3, 0, Math.PI * 2);
+                ctx.stroke();
+            }
+
+            angle += 0.05;
+            requestAnimationFrame(draw);
+        }
+        draw();
+    </script>
+</body>
+</html>

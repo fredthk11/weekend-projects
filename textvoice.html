@@ -41,7 +41,30 @@
             margin-top: 0;
             font-size: 1.5rem;
             text-align: center;
-            margin-bottom: 25px;
+            margin-bottom: 20px;
+        }
+
+        /* Language Selector Layout */
+        .settings {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        select {
+            padding: 8px 12px;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+            font-size: 1rem;
+            background-color: white;
+            cursor: pointer;
+            outline: none;
+        }
+
+        select:focus {
+            border-color: var(--primary-color);
         }
 
         /* Toggle Button Layout */
@@ -117,6 +140,14 @@
 <div class="container">
     <h1>Voice-to-Text Notepad</h1>
     
+    <div class="settings">
+        <label for="langSelect"><strong>Language:</strong></label>
+        <select id="langSelect">
+            <option value="en-US">English</option>
+            <option value="ms-MY">Bahasa Melayu</option>
+        </select>
+    </div>
+
     <div class="controls">
         <button id="toggleBtn" class="toggle-btn">
             <span id="icon">🎤</span> <span id="btnText">Start Listening</span>
@@ -128,48 +159,71 @@
 </div>
 
 <script>
-    // Check browser compatibility
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     
     if (!SpeechRecognition) {
-        document.getElementById('status').innerText = "Error: Your browser does not support Speech Recognition. Please try Google Chrome or Safari.";
+        document.getElementById('status').innerText = "Error: Your browser does not support Speech Recognition. Please try Google Chrome.";
         document.getElementById('toggleBtn').disabled = true;
     } else {
         const recognition = new SpeechRecognition();
         
-        // Configuration for real-time continuous typing
         recognition.continuous = true;
         recognition.interimResults = true; 
-        recognition.lang = 'en-US'; // Change this if you want a different default language
-
+        
         const toggleBtn = document.getElementById('toggleBtn');
         const btnText = document.getElementById('btnText');
         const icon = document.getElementById('icon');
         const status = document.getElementById('status');
         const notepad = document.getElementById('notepad');
+        const langSelect = document.getElementById('langSelect');
 
         let isListening = false;
-        let savedContent = ""; // Stores text written prior to current listening session
+        let savedContent = ""; 
 
-        toggleBtn.addEventListener('click', () => {
-            if (!isListening) {
-                // START LISTENING
-                savedContent = notepad.value; // Store manual edits so far
-                recognition.start();
-            } else {
-                // STOP LISTENING
-                recognition.stop();
+        // Update language instantly if changed by user
+        langSelect.addEventListener('change', () => {
+            recognition.lang = langSelect.value;
+            if (isListening) {
+                // Restart immediately with new language if currently listening
+                recognition.stop(); 
             }
         });
 
-        recognition.onstart = () => {
-            isListening = true;
-            toggleBtn.classList.add('listening');
-            btnText.innerText = "Stop Listening";
-            icon.innerText = "🛑";
-            status.innerText = "Listening... speak clearly into your mic.";
-            notepad.disabled = true; // Block manual keyboard input while AI is typing
-        };
+        // Set default language on load
+        recognition.lang = langSelect.value;
+
+        toggleBtn.addEventListener('click', () => {
+            if (!isListening) {
+                // User manually clicked START
+                isListening = true;
+                savedContent = notepad.value; 
+                recognition.start();
+                updateUIState(true);
+            } else {
+                // User manually clicked STOP
+                isListening = false;
+                recognition.stop();
+                updateUIState(false);
+            }
+        });
+
+        function updateUIState(active) {
+            if (active) {
+                toggleBtn.classList.add('listening');
+                btnText.innerText = "Stop Listening";
+                icon.innerText = "🛑";
+                status.innerText = "Listening indefinitely... speak clearly.";
+                notepad.disabled = true; 
+                langSelect.disabled = true; // Prevent changing language mid-sentence
+            } else {
+                toggleBtn.classList.remove('listening');
+                btnText.innerText = "Start Listening";
+                icon.innerText = "🎤";
+                status.innerText = "Stopped. You can now edit the text manually.";
+                notepad.disabled = false; 
+                langSelect.disabled = false;
+            }
+        }
 
         recognition.onresult = (event) => {
             let interimTranscript = '';
@@ -183,32 +237,36 @@
                 }
             }
 
-            // If there's an active text baseline, make sure we append a trailing space neatly
             let baseText = savedContent;
             if (baseText && !baseText.endsWith(' ') && (finalTranscript || interimTranscript)) {
                 baseText += ' ';
             }
 
-            // Real-time updating: Combine previous text + finalized speech + live-guessing speech
             notepad.value = baseText + finalTranscript + interimTranscript;
-            
-            // Auto-scroll notepad to bottom as it populates
             notepad.scrollTop = notepad.scrollHeight;
         };
 
+        // THIS IS THE BYPASS FOR THE AUTO-IDLE OFF
         recognition.onend = () => {
-            isListening = false;
-            toggleBtn.classList.remove('listening');
-            btnText.innerText = "Start Listening";
-            icon.innerText = "🎤";
-            status.innerText = "Stopped. You can now edit the text manually.";
-            notepad.disabled = false; // Re-enable keyboard editing
+            if (isListening) {
+                // If the system stopped it due to silence, but the user didn't click stop,
+                // we save the current text and instantly restart the microphone.
+                savedContent = notepad.value;
+                recognition.start();
+            } else {
+                // The user intentionally clicked the stop button. Let it stop.
+                updateUIState(false);
+            }
         };
 
         recognition.onerror = (event) => {
-            console.error(event.error);
-            status.innerText = `Error occurred: ${event.error}`;
-            recognition.stop();
+            console.error("Microphone error:", event.error);
+            // If the user completely denied microphone permission, don't try to auto-restart
+            if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
+                isListening = false;
+                updateUIState(false);
+                status.innerText = "Error: Microphone access blocked by browser.";
+            }
         };
     }
 </script>

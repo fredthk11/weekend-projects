@@ -180,11 +180,9 @@
         let isListening = false;
         let savedContent = ""; 
 
-        // Update language instantly if changed by user
         langSelect.addEventListener('change', () => {
             recognition.lang = langSelect.value;
             if (isListening) {
-                // Restart immediately with new language if currently listening
                 recognition.stop(); 
             }
         });
@@ -194,16 +192,15 @@
 
         toggleBtn.addEventListener('click', () => {
             if (!isListening) {
-                // User manually clicked START
+                // User clicked START
                 isListening = true;
                 savedContent = notepad.value; 
                 recognition.start();
                 updateUIState(true);
             } else {
-                // User manually clicked STOP
+                // User clicked STOP
                 isListening = false;
                 recognition.stop();
-                updateUIState(false);
             }
         });
 
@@ -212,9 +209,9 @@
                 toggleBtn.classList.add('listening');
                 btnText.innerText = "Stop Listening";
                 icon.innerText = "🛑";
-                status.innerText = "Listening indefinitely... speak clearly.";
+                status.innerText = "Listening... will auto-stop if silent.";
                 notepad.disabled = true; 
-                langSelect.disabled = true; // Prevent changing language mid-sentence
+                langSelect.disabled = true;
             } else {
                 toggleBtn.classList.remove('listening');
                 btnText.innerText = "Start Listening";
@@ -246,26 +243,20 @@
             notepad.scrollTop = notepad.scrollHeight;
         };
 
-        // THIS IS THE BYPASS FOR THE AUTO-IDLE OFF
+        // Reverted to standard auto-idle off behavior
         recognition.onend = () => {
-            if (isListening) {
-                // If the system stopped it due to silence, but the user didn't click stop,
-                // we save the current text and instantly restart the microphone.
-                savedContent = notepad.value;
-                recognition.start();
-            } else {
-                // The user intentionally clicked the stop button. Let it stop.
-                updateUIState(false);
-            }
+            isListening = false;
+            updateUIState(false);
         };
 
         recognition.onerror = (event) => {
             console.error("Microphone error:", event.error);
-            // If the user completely denied microphone permission, don't try to auto-restart
+            isListening = false;
+            updateUIState(false);
             if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
-                isListening = false;
-                updateUIState(false);
                 status.innerText = "Error: Microphone access blocked by browser.";
+            } else {
+                status.innerText = "Microphone stopped due to idle or error.";
             }
         };
     }

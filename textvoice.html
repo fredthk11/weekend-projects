@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Voice to Text Real-Time Notepad</title>
+    <style>
+        :root {
+            --bg-color: #f4f7f6;
+            --card-bg: #ffffff;
+            --text-color: #333333;
+            --primary-color: #4a90e2;
+            --accent-on: #e74c3c;
+            --border-color: #cccccc;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 600px;
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+        }
+
+        h1 {
+            margin-top: 0;
+            font-size: 1.5rem;
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        /* Toggle Button Layout */
+        .controls {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .toggle-btn {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            font-size: 1rem;
+            font-weight: 600;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .toggle-btn.listening {
+            background-color: var(--accent-on);
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(231, 76, 60, 0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(231, 76, 60, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(231, 76, 60, 0); }
+        }
+
+        .status-text {
+            font-size: 0.85rem;
+            color: #666;
+            margin-top: 8px;
+            height: 18px;
+        }
+
+        /* Text Area styling */
+        .notepad {
+            width: 100%;
+            height: 300px;
+            padding: 15px;
+            font-size: 1.1rem;
+            line-height: 1.6;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            resize: vertical;
+            box-sizing: border-box;
+            outline: none;
+            transition: border-color 0.3s ease;
+        }
+
+        .notepad:focus {
+            border-color: var(--primary-color);
+        }
+
+        .notepad:disabled {
+            background-color: #fafafa;
+            color: #555;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Voice-to-Text Notepad</h1>
+    
+    <div class="controls">
+        <button id="toggleBtn" class="toggle-btn">
+            <span id="icon">🎤</span> <span id="btnText">Start Listening</span>
+        </button>
+        <div id="status" class="status-text">Click the button to start speaking.</div>
+    </div>
+
+    <textarea id="notepad" class="notepad" placeholder="Your speech will appear here... Type or edit when listening is turned off."></textarea>
+</div>
+
+<script>
+    // Check browser compatibility
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    
+    if (!SpeechRecognition) {
+        document.getElementById('status').innerText = "Error: Your browser does not support Speech Recognition. Please try Google Chrome or Safari.";
+        document.getElementById('toggleBtn').disabled = true;
+    } else {
+        const recognition = new SpeechRecognition();
+        
+        // Configuration for real-time continuous typing
+        recognition.continuous = true;
+        recognition.interimResults = true; 
+        recognition.lang = 'en-US'; // Change this if you want a different default language
+
+        const toggleBtn = document.getElementById('toggleBtn');
+        const btnText = document.getElementById('btnText');
+        const icon = document.getElementById('icon');
+        const status = document.getElementById('status');
+        const notepad = document.getElementById('notepad');
+
+        let isListening = false;
+        let savedContent = ""; // Stores text written prior to current listening session
+
+        toggleBtn.addEventListener('click', () => {
+            if (!isListening) {
+                // START LISTENING
+                savedContent = notepad.value; // Store manual edits so far
+                recognition.start();
+            } else {
+                // STOP LISTENING
+                recognition.stop();
+            }
+        });
+
+        recognition.onstart = () => {
+            isListening = true;
+            toggleBtn.classList.add('listening');
+            btnText.innerText = "Stop Listening";
+            icon.innerText = "🛑";
+            status.innerText = "Listening... speak clearly into your mic.";
+            notepad.disabled = true; // Block manual keyboard input while AI is typing
+        };
+
+        recognition.onresult = (event) => {
+            let interimTranscript = '';
+            let finalTranscript = '';
+
+            for (let i = event.resultIndex; i < event.results.length; ++i) {
+                if (event.results[i].isFinal) {
+                    finalTranscript += event.results[i][0].transcript;
+                } else {
+                    interimTranscript += event.results[i][0].transcript;
+                }
+            }
+
+            // If there's an active text baseline, make sure we append a trailing space neatly
+            let baseText = savedContent;
+            if (baseText && !baseText.endsWith(' ') && (finalTranscript || interimTranscript)) {
+                baseText += ' ';
+            }
+
+            // Real-time updating: Combine previous text + finalized speech + live-guessing speech
+            notepad.value = baseText + finalTranscript + interimTranscript;
+            
+            // Auto-scroll notepad to bottom as it populates
+            notepad.scrollTop = notepad.scrollHeight;
+        };
+
+        recognition.onend = () => {
+            isListening = false;
+            toggleBtn.classList.remove('listening');
+            btnText.innerText = "Start Listening";
+            icon.innerText = "🎤";
+            status.innerText = "Stopped. You can now edit the text manually.";
+            notepad.disabled = false; // Re-enable keyboard editing
+        };
+
+        recognition.onerror = (event) => {
+            console.error(event.error);
+            status.innerText = `Error occurred: ${event.error}`;
+            recognition.stop();
+        };
+    }
+</script>
+
+</body>
+</html>
